@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace MiniBlog.Infrastructure.Persistence.Configurations    // solution name!
+namespace Blog.Infrastructure.Persistence.Configurations  
 { 
     public class CommentConfiguration : IEntityTypeConfiguration<Comment>
     {

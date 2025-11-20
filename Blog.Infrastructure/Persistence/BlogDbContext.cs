@@ -54,14 +54,12 @@ namespace Blog.Infrastructure.Persistence
                 {
                     entry.Property("UpdatedAt").CurrentValue = now;
                 }
-                //if (entityType.IsAbstract()) { }
-                //if (clrType.IsAssignableFrom(entityType)) { }
             }
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder
-                .ApplyConfigurationsFromAssembly(typeof(BlogDbContext).Assembly); // Try not apply them
+                .ApplyConfigurationsFromAssembly(typeof(BlogDbContext).Assembly); 
 
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
