@@ -27,8 +27,6 @@ namespace Blog.Domain.ValueObjects
         }
         public override bool Equals(object? obj) => 
             obj is Email other && Value.Equals(other.Value, StringComparison.InvariantCultureIgnoreCase);
-        //public override int GetHashCode() => Value.GetHashCode(StringComparison.InvariantCultureIgnoreCase);
-        //public override int GetHashCode() => Value.ToLowerInvariant().GetHashCode();
         public override int GetHashCode() => HashCode.Combine(Value.ToLowerInvariant());
         public override string ToString() => Value;
     }

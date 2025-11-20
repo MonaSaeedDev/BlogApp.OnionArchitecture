@@ -2,10 +2,13 @@
 using Blog.Domain.Enums;
 using Blog.Domain.ValueObjects;
 using Bogus;
+using Bogus.Bson;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,104 +23,95 @@ namespace Blog.Infrastructure.Persistence.Seed
             const string locale = "en";
             var faker = new Faker(locale);
             const int sentenceLimit = 5, wordsLimit = 10;
-            var random = new Random();
 
             #region Seed Users
+                var users = new List<User>();
             if (!await context.Users.AnyAsync(ct))
             {
-            var usersToAdd = new List<User>();
-            for (int i = 0; i < 10; i++)
-            {
-                var userName = faker.Internet.UserName().ToLowerInvariant();
-                var user = new User
+                for (int i = 0; i < 10; i++)
                 {
-                    UserName = userName,
-                    Email = Email.Create($"{userName}@example.com"),
-                    Bio = faker.Lorem.Sentence(wordsLimit),
-                };
-                    usersToAdd.Add(user);
-            }
+                    var userName = faker.Internet.UserName().ToLowerInvariant();
+                    var user = new User
+                    {
+                        UserName = userName,
+                        Email = Email.Create($"{userName}@example.com"),
+                        Bio = faker.Lorem.Sentence(wordsLimit),
+                    };
+                    users.Add(user);
+                }
 
-            await context.Users.AddRangeAsync(usersToAdd, ct);
-            await context.SaveChangesAsync(ct);
-        }
+                await context.Users.AddRangeAsync(users, ct);
+                await context.SaveChangesAsync(ct);
+            }
             #endregion
 
             #region Seed Posts 
-                var Authors = await context.Users.AsNoTracking().ToListAsync(ct);
-
+                var posts = new List<Post>();
             if (!await context.Posts.AnyAsync(ct))
             {
-                var postsToAdd = new List<Post>();
 
                 for (int i = 0; i < 50; i++)
                 {
-                    var author = faker.PickRandom(Authors); 
+                    var author = faker.PickRandom(users);
                     var post = new Post
                     {
                         UserId = author.Id,
-                        Content = faker.Lorem.Paragraph(random.Next(sentenceLimit)) 
+                        Content = faker.Lorem.Paragraph(Random.Shared.Next(sentenceLimit))
                     };
-                    postsToAdd.Add(post);
+                    posts.Add(post);
                 }
 
-                await context.Posts.AddRangeAsync(postsToAdd, ct);
+                await context.Posts.AddRangeAsync(posts, ct);
                 await context.SaveChangesAsync(ct);
             }
             #endregion
 
             #region Seed Comments
-
-                var posts = await context.Posts.AsNoTracking().ToListAsync(ct);
+                var comments = new List<Comment>();
             if (!await context.Comments.AnyAsync(ct))
             {
-                var commentsToAdd = new List<Comment>();
 
-                for(int i = 0; i < 100; i++)
+                for (int i = 0; i < 100; i++)
                 {
                     var post = faker.PickRandom(posts);
-                    var author = faker.PickRandom(Authors);
+                    var author = faker.PickRandom(users);
 
-                    commentsToAdd.Add(new Comment
+                    comments.Add(new Comment
                     {
                         UserId = author.Id,
                         PostId = post.Id,
-                        Content = faker.Lorem.Sentence(random.Next(wordsLimit))
+                        Content = faker.Lorem.Sentence(Random.Shared.Next(1, wordsLimit + 1))
                     });
                 }
 
-                await context.Comments.AddRangeAsync(commentsToAdd, ct);
+                await context.Comments.AddRangeAsync(comments, ct);
                 await context.SaveChangesAsync(ct);
             }
             #endregion
 
             #region Seed Reactions
-
-            if(!await context.Reactions.AnyAsync(ct))
+            if (!await context.Reactions.AnyAsync(ct))
             {
-
-                var comments = await context.Comments.AsNoTracking().ToListAsync(ct);
                 var reactionKinds = Enum.GetValues<ReactionKind>();
-
-                var reactionsToAdd = new List<Reaction>(); 
-                var reactedUserPosts = new HashSet<(int, int)>();
-                var reactedUserComments = new HashSet<(int, int)>();
+                var reactedUserPosts = new HashSet<(int PostId, int UserId)>();
+                var reactedUserComments = new HashSet<(int CommentId, int UserId)>();
+                var reactionsToAdd = new List<Reaction>();
 
                 for (int i = 0; i < 1000; i++)
                 {
-                    var author = faker.PickRandom(Authors);
+                    var reactingUser = faker.PickRandom(users);
                     var post = faker.PickRandom(posts);
                     var comment = faker.PickRandom(comments);
                     var kind = faker.PickRandom(reactionKinds);
-                    bool reactToPost = random.Next(2) == 1;
+                    bool reactToPost = Random.Shared.Next(2) == 1;
 
                     if (reactToPost)
                     {
-                        if (reactedUserPosts.Add((author.Id, post.Id)))
+                        if (reactedUserPosts.Add((post.Id, reactingUser.Id)))
                         {
                             reactionsToAdd.Add(new Reaction
                             {
-                                UserId = author.Id,
+                                UserId = reactingUser.Id,
                                 PostId = post.Id,
                                 Kind = kind
                             });
@@ -126,11 +120,11 @@ namespace Blog.Infrastructure.Persistence.Seed
                     else
                     {
 
-                        if (reactedUserComments.Add((author.Id, comment.Id)))
+                        if (reactedUserComments.Add((comment.Id, reactingUser.Id)))
                         {
                             reactionsToAdd.Add(new Reaction
                             {
-                                UserId = author.Id,
+                                UserId = reactingUser.Id,
                                 CommentId = comment.Id,
                                 Kind = kind
                             });
@@ -145,34 +139,32 @@ namespace Blog.Infrastructure.Persistence.Seed
             #endregion
 
             #region Seed Follows
+             const double density = 0.5; 
+            
+            var userIds = users.Select(u => u.Id).ToArray(); 
+            
+            var allPairs =
+                   (from followerId in userIds
+                    from followeeId in userIds
+                    where followerId != followeeId
+                    select new Follow { FollowerId = followerId, FolloweeId = followeeId }
+                    ).ToList();
 
-                var followsToAdd = new List<Follow>();
-                var existingFollows = new HashSet<(int, int)>();
+            var taken = (int)(allPairs.Count * density);
 
-            for (int i = 0; i < 100; i++)
+            var rng = Random.Shared;
+            for (int i = allPairs.Count - 1; i > 0; i--)
             {
-                var follower = faker.PickRandom(Authors);
-                var followee = faker.PickRandom(Authors);
-
-                if(Authors.Count < 2)
-                    return;
-
-                if (follower.Id != followee.Id && existingFollows.Add((follower.Id, followee.Id)))
-                {
-                    followsToAdd.Add(new Follow
-                    {
-                        FollowerId = follower.Id,
-                        FolloweeId = followee.Id
-                    });
-                }
-
+                var j = rng.Next(i + 1);
+                (allPairs[i], allPairs[j]) = (allPairs[j], allPairs[i]);
             }
 
-             if (followsToAdd.Count > 0)
-             {
-                await context.Follows.AddRangeAsync(followsToAdd, ct);
-                await context.SaveChangesAsync(ct);
-             }
+            var followsToAdd = allPairs
+                .Take(taken)
+                .ToList();
+
+            await context.Follows.AddRangeAsync(followsToAdd, ct);
+            await context.SaveChangesAsync(ct);   
             #endregion
 
         }

@@ -9,7 +9,7 @@ namespace Blog.Domain.Entities
 {
     public class Reaction : BaseEntity
     {
-        public int UserId { get; set; }// reaction without post and comment
+        public int UserId { get; set; }
         public int? PostId { get; set; } 
         public int? CommentId { get; set; }
         public ReactionKind Kind { get; set; }

@@ -17,6 +17,9 @@ namespace Blog.Infrastructure.Persistence.Configurations
 
             builder.HasKey(r => r.Id);
 
+            builder
+               .ToTable(t => t.HasCheckConstraint("CK_Reaction_HasTarget", "[PostId] IS NOT NULL OR [CommentId] IS NOT NULL"));
+
             builder.Property(r => r.Kind)
                 .HasConversion<string>()
                 .HasMaxLength(20);

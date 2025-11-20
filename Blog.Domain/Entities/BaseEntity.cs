@@ -8,7 +8,6 @@ namespace Blog.Domain.Entities
 {
     public abstract class BaseEntity
     {
-        //private BaseEntity() { }
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

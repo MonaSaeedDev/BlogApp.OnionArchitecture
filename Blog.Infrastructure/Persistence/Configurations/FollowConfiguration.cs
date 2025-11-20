@@ -17,7 +17,7 @@ namespace Blog.Infrastructure.Persistence.Configurations
                 .ToTable("Follows");
             builder
                 .Property(f => f.CreatedAt)
-                .HasDefaultValueSql("GETUTCDATE()") // .HasDefaultValue(DateTime.UtcNow)
+                .HasDefaultValueSql("GETUTCDATE()")
                 .ValueGeneratedOnAdd();
             builder
                 .ToTable (t => t.HasCheckConstraint("CK_Follow_SelfFollow", "[FollowerId] <> [FolloweeId]"));
@@ -31,7 +31,7 @@ namespace Blog.Infrastructure.Persistence.Configurations
                 .HasOne(f => f.Follower)
                 .WithMany(f => f.Following)
                 .HasForeignKey(f => f.FollowerId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
             builder
                .HasOne(f => f.Followee)
                .WithMany(f => f.Followers)
