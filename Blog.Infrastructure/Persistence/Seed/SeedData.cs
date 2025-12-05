@@ -25,7 +25,7 @@ namespace Blog.Infrastructure.Persistence.Seed
             const int sentenceLimit = 5, wordsLimit = 10;
 
             #region Seed Users
-                var users = new List<User>();
+            var users = new List<User>();
             if (!await context.Users.AnyAsync(ct))
             {
                 for (int i = 0; i < 10; i++)
@@ -46,7 +46,7 @@ namespace Blog.Infrastructure.Persistence.Seed
             #endregion
 
             #region Seed Posts 
-                var posts = new List<Post>();
+            var posts = new List<Post>();
             if (!await context.Posts.AnyAsync(ct))
             {
 
@@ -67,7 +67,7 @@ namespace Blog.Infrastructure.Persistence.Seed
             #endregion
 
             #region Seed Comments
-                var comments = new List<Comment>();
+            var comments = new List<Comment>();
             if (!await context.Comments.AnyAsync(ct))
             {
 
@@ -139,10 +139,10 @@ namespace Blog.Infrastructure.Persistence.Seed
             #endregion
 
             #region Seed Follows
-             const double density = 0.5; 
-            
-            var userIds = users.Select(u => u.Id).ToArray(); 
-            
+            const double density = 0.5;
+
+            var userIds = users.Select(u => u.Id).ToArray();
+
             var allPairs =
                    (from followerId in userIds
                     from followeeId in userIds
@@ -164,7 +164,7 @@ namespace Blog.Infrastructure.Persistence.Seed
                 .ToList();
 
             await context.Follows.AddRangeAsync(followsToAdd, ct);
-            await context.SaveChangesAsync(ct);   
+            await context.SaveChangesAsync(ct);
             #endregion
 
         }
