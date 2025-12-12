@@ -1,10 +1,5 @@
-﻿
-using Blog.Domain.Enums;
-using Blog.Infrastructure.Migrations;
-using Blog.Infrastructure.Persistence;
+﻿using Blog.Infrastructure.Persistence;
 using Blog.Infrastructure.Persistence.Seed;
-using Bogus;
-using Bogus.DataSets;
 
 Console.WriteLine("Try to seed.");
 Console.WriteLine("Seeding started...");

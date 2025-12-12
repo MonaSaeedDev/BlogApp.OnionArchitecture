@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Blog.Domain.Entities;
 
-namespace Blog.Domain.Entities
+public abstract class BaseEntity
 {
-    public abstract class BaseEntity
-    {
-        public int Id { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        public bool IsDeleted { get; set; }
-        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
-    }
+    public int Id { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public bool IsDeleted { get; set; }
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 }

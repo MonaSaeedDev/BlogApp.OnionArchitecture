@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace blog.Application.DTOs.Post;
 
-namespace blog.Application.DTOs.Post
+public sealed record class FeedItemDto
 {
-    public class FeedItemDto
-    {
-        public int PostId { get; set; }
-        public string Author { get; set; } = null!;
-        public string Content { get; set; } = null!;
-        public DateTime CreatedAt { get; set; } 
-        public int LikeCount { get; set; }
-        public int CommentCount { get; set; }
-        public bool YouLike { get; set; }
-    }
+    public required int PostId { get; init; }
+    public required string Author { get; init; }
+    public required string Content { get; init; }
+    public required DateTime CreatedAt { get; init; }
+    public required int LikeCount { get; init; }
+    public required int CommentCount { get; init; }
+    public required bool YouLike { get; init; }
 }

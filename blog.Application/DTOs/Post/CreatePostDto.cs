@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace blog.Application.DTOs.Post;
 
-namespace blog.Application.DTOs.Post
+public sealed record class CreatePostDto
 {
-    public class CreatePostDto
-    {
-        public int UserId { get; set; }
-        public string Content { get; set; } = null!;
-    }
+    public required int UserId { get; init; }
+    public required string Content { get; init; }
 }
